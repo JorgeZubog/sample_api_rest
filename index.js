@@ -1,7 +1,15 @@
+//Load enviroment
+require('dotenv').config()
+
+//Connection direct to mongoDB without caching
+require('./mongo')
+
 const express = require('express')
 const cors = require('cors')
 const app = express()
 const logger = require('./loggerMiddleware')
+const Note = require('./models/Note')
+
 
 app.use(cors())
 app.use(express.json())
@@ -9,24 +17,24 @@ app.use(express.json())
 app.use(logger)
 
 let notes = [
-    {
-        "userId": 1,
-        "id": 1,
-        "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
-        "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
-    },
-    {
-        "userId": 1,
-        "id": 2,
-        "title": "qui est esse",
-        "body": "est rerum tempore vitae\nsequi sint nihil reprehenderit dolor beatae ea dolores neque\nfugiat blanditiis voluptate porro vel nihil molestiae ut reiciendis\nqui aperiam non debitis possimus qui neque nisi nulla"
-    },
-    {
-        "userId": 1,
-        "id": 3,
-        "title": "ea molestias quasi exercitationem repellat qui ipsa sit aut",
-        "body": "et iusto sed quo iure\nvoluptatem occaecati omnis eligendi aut ad\nvoluptatem doloribus vel accusantium quis pariatur\nmolestiae porro eius odio et labore et velit aut"
-    }
+    // {
+    //     "userId": 1,
+    //     "id": 1,
+    //     "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+    //     "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
+    // },
+    // {
+    //     "userId": 1,
+    //     "id": 2,
+    //     "title": "qui est esse",
+    //     "body": "est rerum tempore vitae\nsequi sint nihil reprehenderit dolor beatae ea dolores neque\nfugiat blanditiis voluptate porro vel nihil molestiae ut reiciendis\nqui aperiam non debitis possimus qui neque nisi nulla"
+    // },
+    // {
+    //     "userId": 1,
+    //     "id": 3,
+    //     "title": "ea molestias quasi exercitationem repellat qui ipsa sit aut",
+    //     "body": "et iusto sed quo iure\nvoluptatem occaecati omnis eligendi aut ad\nvoluptatem doloribus vel accusantium quis pariatur\nmolestiae porro eius odio et labore et velit aut"
+    // }
 ]
 
 // const app = http.createServer((request, response) => {
@@ -39,18 +47,37 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/notes', (request, response) => {
-    response.json(notes)
+    Note.find({}).then(notes => {
+        response.json(notes
+            /*DO NOT WORK
+            notes.map(note => {
+            const { _id, __v, ...restOfNote } = note
+            return {
+                ...restOfNote,
+                id: _id
+            }
+        })*/
+        )
+    })
 })
 
-app.get('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id)
+app.get('/api/notes/:id', (request, response, next) => {
+    //const id = Number(request.params.id)
+    const { id } = request.params
+
     console.log('get ' + id.toString())
-    const note = notes.find(note => note.id == id)
-    if (note) {
-        response.json(note)
-    } else {
-        response.status(404).end()
-    }
+    //const note = notes.find(note => note.id == id) NO LONGER NEED BECAUSE A NEW DB
+    Note.findById(id).status(200).then(note => {
+        if (note) {
+            response.json(note)
+        } else {
+            response.status(404).end()
+        }
+    }).catch(err => {
+        next(err)
+        console.log(err)
+        response.status(503).end()
+    })
 })
 
 app.post('/api/notes/', (request, response) => {
@@ -63,28 +90,47 @@ app.post('/api/notes/', (request, response) => {
         console.log("note.content is missing")
     }
 
-    const ids = notes.map(note => note.id)
-    const maxId = Math.max(...ids);
+    //const ids = notes.map(note => note.id)
+    //const maxId = Math.max(...ids);
 
-    const newNote = {
-        id: maxId + 1,
-        body: note.content,
-        date: new Date().toISOString()
-    }
+    // const newNote = {
+    //     id: maxId + 1,
+    //     content: note.content,
+    //     date: new Date().toISOString()
+    // }
 
-    console.log('post ' + note)
+    const newNote = new Note({
+        content: note.content,
+        date: new Date(),
+        important: note.important || false
+    })
 
-    notes = [...notes, newNote]
+    newNote.save().then(saveNote => {
+        response.status(201).json(saveNote)
+    })
 
-    response.status(201).json(newNote)
+    console.log('post ' + newNote)
+
+    //notes = [...notes, newNote] NO LONGER NEED BECAUSE A NEW DB
+
+    //response.status(201).json(newNote)
 })
 
 
 app.delete('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id)
+    // const id = Number(request.params.id) NO LONGER NEED BECAUSE A NEW DB
+    const { id } = request.params
     console.log('delete ' + id.toString())
-    notes = notes.filter(note => note.id != id)
-    response.status(204).end()
+    Note.findByIdAndDelete(id).then(note => {
+        if (note) {
+            response.status(204).json(note)
+        } else {
+            response.status(404).end()
+        }
+    })
+
+    // notes = notes.filter(note => note.id != id) NO LONGER NEED BECAUSE A NEW DB
+    //response.status(204).end()
 })
 
 app.use((request, response) => {
@@ -93,7 +139,7 @@ app.use((request, response) => {
     })
 })
 
-const PORT = 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log('Server is running on port ' + PORT)
 })
