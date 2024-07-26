@@ -9,6 +9,8 @@ const cors = require('cors')
 const app = express()
 const logger = require('./loggerMiddleware')
 const Note = require('./models/Note')
+const notFound = require('./middleware/notFound')
+const handleErrors = require('./middleware/handleErrors')
 
 
 app.use(cors())
@@ -16,7 +18,7 @@ app.use(express.json())
 
 app.use(logger)
 
-let notes = [
+// let notes = [ //NO LONGER NEED BECAUSE A NEW DB
     // {
     //     "userId": 1,
     //     "id": 1,
@@ -35,7 +37,7 @@ let notes = [
     //     "title": "ea molestias quasi exercitationem repellat qui ipsa sit aut",
     //     "body": "et iusto sed quo iure\nvoluptatem occaecati omnis eligendi aut ad\nvoluptatem doloribus vel accusantium quis pariatur\nmolestiae porro eius odio et labore et velit aut"
     // }
-]
+// ]
 
 // const app = http.createServer((request, response) => {
 //     response.writeHead(200, { 'Content-Type': 'application/json' })
@@ -48,7 +50,7 @@ app.get('/', (request, response) => {
 
 app.get('/api/notes', (request, response) => {
     Note.find({}).then(notes => {
-        response.json(notes
+        response.status(200).json(notes
             /*DO NOT WORK
             notes.map(note => {
             const { _id, __v, ...restOfNote } = note
@@ -67,17 +69,22 @@ app.get('/api/notes/:id', (request, response, next) => {
 
     console.log('get ' + id.toString())
     //const note = notes.find(note => note.id == id) NO LONGER NEED BECAUSE A NEW DB
-    Note.findById(id).status(200).then(note => {
-        if (note) {
-            response.json(note)
-        } else {
-            response.status(404).end()
-        }
-    }).catch(err => {
-        next(err)
-        console.log(err)
-        response.status(503).end()
+    Note.findById(id)
+    .then(result => {
+        return  result
+        ? response.status(200).json(result)
+        : response.status(404).end()
     })
+    .catch(error => next(error))
+        //.then(note => {
+        // if (note) {
+        //     response.status(200).json(note)
+        // } else {
+        //     response.status(404).end()
+    //     }
+    // }).catch(err => {
+    //     next(err)
+    // })
 })
 
 app.post('/api/notes/', (request, response) => {
@@ -116,28 +123,40 @@ app.post('/api/notes/', (request, response) => {
     //response.status(201).json(newNote)
 })
 
+app.put('/api/notes/:id', (request, response, next) => {
+    const { id } = request.params
+    const note = request.body
 
-app.delete('/api/notes/:id', (request, response) => {
+    const newNoteInfo = {
+        content: note.content,
+        date: new Date(),
+        important: note.important || false
+    }
+
+    console.log('update ' + id.toString())
+    Note.findByIdAndUpdate(id, newNoteInfo, {new: true})
+        .then(result => {
+            response.status(202).json(result)
+        }).catch(error => next(error))
+
+})
+
+app.delete('/api/notes/:id', (request, response, next) => {
     // const id = Number(request.params.id) NO LONGER NEED BECAUSE A NEW DB
     const { id } = request.params
     console.log('delete ' + id.toString())
-    Note.findByIdAndDelete(id).then(note => {
-        if (note) {
-            response.status(204).json(note)
-        } else {
-            response.status(404).end()
-        }
-    })
+    Note.findByIdAndDelete(id)
+        .then(result => {
+            response.status(202).json(result)
+        }).catch(error => next(error))
 
     // notes = notes.filter(note => note.id != id) NO LONGER NEED BECAUSE A NEW DB
     //response.status(204).end()
 })
 
-app.use((request, response) => {
-    response.status(404).json({
-        error: 'Not found'
-    })
-})
+app.use(notFound)
+
+app.use(handleErrors)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
