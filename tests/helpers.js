@@ -13,6 +13,11 @@ const initialNotes = [
         "content": "MongoDB es increible",
         "date": "2024-07-25T12:30:31.538+00:00",
         "important": true
+    },
+    {
+        "content": "agregar otra nota",
+        "date": "2024-07-25T12:30:31.538+00:00",
+        "important": false
     }
 ]
 

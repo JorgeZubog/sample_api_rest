@@ -48,7 +48,7 @@ app.get('/', (request, response) => {
     response.send('<h1>Hello World</h1>')
 })
 
-app.get('/api/notes', (request, response) => {
+app.get('/api/notes', /*async*/(request, response) => {
     Note.find({}).then(notes => {
         response.status(200).json(notes
             /*DO NOT WORK
@@ -61,6 +61,10 @@ app.get('/api/notes', (request, response) => {
         })*/
         )
     })
+
+    //if there is a async in the callback
+    // const notes = await Note.find({})
+    // response.json(notes)
 })
 
 app.get('/api/notes/:id', (request, response, next) => {
@@ -87,7 +91,7 @@ app.get('/api/notes/:id', (request, response, next) => {
     // })
 })
 
-app.post('/api/notes/', (request, response) => {
+app.post('/api/notes/', async (request, response, next) => {
     const note = request.body
     if (!note || !note.content) {
         response.status(400).json({
@@ -112,9 +116,17 @@ app.post('/api/notes/', (request, response) => {
         important: note.important || false
     })
 
-    newNote.save().then(saveNote => {
-        response.status(201).json(saveNote)
-    })
+    // Raplace by async code 
+    // newNote.save().then(saveNote => {
+    //     response.status(201).json(saveNote)
+    // }).catch(err => next(err))
+
+    try {
+        const savedNote = await newNote.save()
+        response.status(201).json(savedNote)
+    } catch (error) {
+        next(error)
+    }
 
     console.log('post ' + newNote)
 
@@ -147,7 +159,7 @@ app.delete('/api/notes/:id', (request, response, next) => {
     console.log('delete ' + id.toString())
     Note.findByIdAndDelete(id)
         .then(result => {
-            response.status(202).json(result)
+            response.status(204).json(result).end()
         }).catch(error => next(error))
 
     // notes = notes.filter(note => note.id != id) NO LONGER NEED BECAUSE A NEW DB
