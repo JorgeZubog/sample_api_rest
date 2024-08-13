@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon index.js",
     "start": "cross-env NODE_ENV=production node index.js",
-    "test": "cross-env NODE_ENV=test jest --verbose --silent notes.test.js",
+    "test": "cross-env NODE_ENV=test PORT=3030 jest --verbose --silent user.test.js",
     "test:watch": "npm run test -- --watch"
   },
   "keywords": [],
@@ -18,11 +18,13 @@
     "supertest": "^7.0.0"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cors": "2.8.5",
     "cross-env": "^7.0.3",
     "dotenv": "16.4.5",
     "express": "4.19.2",
-    "mongoose": "8.5.1"
+    "mongoose": "8.5.1",
+    "mongoose-unique-validator": "^5.0.1"
   },
   "jest": {
     "testEnvironment": "node"

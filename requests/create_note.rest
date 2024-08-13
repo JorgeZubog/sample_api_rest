@@ -1,7 +1,8 @@
-POST  http://localhost:3001/api/notes 
+POST  http://localhost:3004/api/notes 
 content-type: application/json
 
 {
     "content" : "Esto es una nueva nota desde REST Client vscode extension",
-    "important": true
+    "important": true,
+    "userId": "66b38a0357dd1ead8d5fdd59"
 }
