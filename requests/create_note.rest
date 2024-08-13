@@ -1,8 +1,8 @@
 POST  http://localhost:3004/api/notes 
-content-type: application/json
+Content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YmIxZjMzZTM3YTYyODc2YmQzZGUyMSIsInVzZXJuYW1lIjoiSm9yZ2UiLCJpYXQiOjE3MjM1NDE3ODN9.nZD4fcpkl2RKrDp1PX0bpS7kJDP5hwLznDNgaSasy0E
 
 {
     "content" : "Esto es una nueva nota desde REST Client vscode extension",
-    "important": true,
-    "userId": "66b38a0357dd1ead8d5fdd59"
+    "important": true
 }

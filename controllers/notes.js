@@ -1,9 +1,9 @@
+const userExtractor = require('../middleware/userExtractor')
 const notesRouter = require('express').Router()
-const { response } = require('express')
 const Note = require('../models/Note')
 const User = require('../models/User')
 
-notesRouter.get('/', async (request, response) => {
+notesRouter.get('/', /*async*/(request, response) => {
     //When there is not async use a promise instead
     Note.find({})
         .populate('user', {
@@ -55,13 +55,13 @@ notesRouter.get('/:id', (request, response, next) => {
     // })
 })
 
-notesRouter.post('/', async (request, response, next) => {
+notesRouter.post('/', userExtractor, async (request, response, next) => {
     const {
         content,
         important = false,
-        userId
     } = request.body
 
+    const { userId } = request
     const user = await User.findById(userId)
 
     if (!content) {
@@ -111,7 +111,7 @@ notesRouter.post('/', async (request, response, next) => {
     //response.status(201).json(newNote)
 })
 
-notesRouter.put('/:id', (request, response, next) => {
+notesRouter.put('/:id', userExtractor, (request, response, next) => {
     const { id } = request.params
     const note = request.body
 
@@ -129,7 +129,7 @@ notesRouter.put('/:id', (request, response, next) => {
 
 })
 
-notesRouter.delete('/:id', (request, response, next) => {
+notesRouter.delete('/:id', userExtractor, (request, response, next) => {
     // const id = Number(request.params.id) NO LONGER NEED BECAUSE A NEW DB
     const { id } = request.params
     console.log('delete ' + id.toString())

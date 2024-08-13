@@ -1,6 +1,7 @@
 //Load enviroment
 require('dotenv').config()
 
+
 //Connection direct to mongoDB without caching
 require('./mongo')
 
@@ -9,9 +10,12 @@ const cors = require('cors')
 const app = express()
 const logger = require('./loggerMiddleware')
 const Note = require('./models/Note')
+
 const notFound = require('./middleware/notFound')
 const handleErrors = require('./middleware/handleErrors')
+
 const usersRouter = require('./controllers/users')
+const loginRouter = require('./controllers/login')
 const notesRouter = require('./controllers/notes')
 
 
@@ -51,11 +55,10 @@ app.get('/', (request, response) => {
 })
 
 app.use('/api/notes', notesRouter)
-
 app.use('/api/users', usersRouter)
+app.use('/api/login', loginRouter)
 
 app.use(notFound)
-
 app.use(handleErrors)
 
 const PORT = process.env.PORT

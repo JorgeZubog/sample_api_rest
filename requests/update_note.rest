@@ -1,5 +1,6 @@
 PUT  http://localhost:3004/api/notes/66a247395159ef2c24da2725
 content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YmIxZjMzZTM3YTYyODc2YmQzZGUyMSIsInVzZXJuYW1lIjoiSm9yZ2UiLCJpYXQiOjE3MjM1NDE3ODN9.nZD4fcpkl2RKrDp1PX0bpS7kJDP5hwLznDNgaSasy0E
 
 {
     "content" : "Esta es una nota actualizada desde REST Client vscode extension",
